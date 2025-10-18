@@ -1,0 +1,5 @@
+embeddings:
+  model: Qwen/Qwen3-Embedding-8B
+  provider: nebius
+file:
+  allowed_types: ["txt", "pdf", "docx", "doc", "md"]
