@@ -7,13 +7,18 @@ requires-python = ">=3.9"
 dependencies = [
     "httpx>=0.28.1",
     "langchain>=0.3.27",
+    "langchain-chroma>=0.2.6",
+    "langchain-community>=0.3.31",
     "langchain-huggingface>=0.3.1",
     "langchain-openai>=0.3.35",
     "langchain-unstructured>=0.1.6",
     "langgraph>=0.6.10",
+    "loguru>=0.7.3",
+    "nltk>=3.9.2",
     "pydantic>=2.12.3",
     "pydantic-settings>=2.11.0",
     "pypdf>=6.1.1",
     "python-dotenv>=1.1.1",
     "pyyaml>=6.0.3",
+    "unstructured>=0.18.3",
 ]

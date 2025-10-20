@@ -10,8 +10,14 @@ class EmbeddingsConfig:
 
 
 @dataclass
+class LLMConfig:
+    model: str
+
+
+@dataclass
 class ModelConfig:
     embeddings: EmbeddingsConfig
+    llm: LLMConfig
 
 
 @dataclass
@@ -23,6 +29,8 @@ class SecretConfig(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env")
     huggingfacehub_api_token: str
     unstructured_api_key: str
+    openai_api_key: str
+    openai_api_base: str
 
 
 @dataclass
@@ -40,11 +48,13 @@ def load_config() -> SystemConfig:
     embeddings_model = yaml_data["embeddings"]["model"]
     embeddings_provider = yaml_data["embeddings"]["provider"]
     allowed_types = yaml_data["file"]["allowed_types"]
+    llm_model = yaml_data["llm"]["model"]
 
     model_config = ModelConfig(
         embeddings=EmbeddingsConfig(
             model=embeddings_model, provider=embeddings_provider
-        )
+        ),
+        llm=LLMConfig(model=llm_model),
     )
     file_config = FileConfig(allowed_types=allowed_types)
     secret_config = SecretConfig()

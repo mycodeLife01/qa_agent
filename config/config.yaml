@@ -3,3 +3,6 @@ embeddings:
   provider: nebius
 file:
   allowed_types: ["txt", "pdf", "docx", "doc", "md"]
+llm:
+  model: openai/gpt-4o-mini
+  
