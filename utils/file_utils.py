@@ -3,7 +3,7 @@ import io
 import httpx
 
 
-async def process_file(file_url: str) -> io.BytesIO | None:
+async def load_file(file_url: str) -> io.BytesIO | None:
     if file_url.startswith("http"):
         async with httpx.AsyncClient() as client:
             response = await client.get(file_url, timeout=60)

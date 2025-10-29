@@ -5,4 +5,7 @@ file:
   allowed_types: ["txt", "pdf", "docx", "doc", "md"]
 llm:
   model: openai/gpt-4o-mini
+vector_store:
+  persist_directory: /Users/jk/Projects/qa_shared/vector_store
+  collection_name: mvp_main_store
   

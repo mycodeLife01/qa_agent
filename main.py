@@ -7,9 +7,7 @@ async def test_agent():
     system_config = load_config()
     agent = QAAgent(system_config)
     state = {
-        "question": "有一种名为键键豚的海豚吗？",
-        "file_type": "txt",
-        "file_url": "./files/dolphin.txt",
+        "question": "在执行暗区的时候，万一api数据和游戏内结算数据不一致，怎么办？告诉我具体解决办法",
     }
     response = await agent.run(state)
     print(f"answer: {response['answer']}")
