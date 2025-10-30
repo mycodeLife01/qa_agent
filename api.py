@@ -109,9 +109,3 @@ async def ask_question(request: AskRequest):
         error_msg = f"处理问题失败: {str(e)}"
         print(f"[API] 错误: {error_msg}")
         raise HTTPException(status_code=500, detail=error_msg)
-
-
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(app, host="0.0.0.0", port=8001)
