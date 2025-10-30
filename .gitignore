@@ -12,3 +12,6 @@ wheels/
 .env
 
 setup_nltk.py
+
+
+config/config.yaml
