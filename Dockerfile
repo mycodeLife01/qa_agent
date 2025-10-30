@@ -24,8 +24,9 @@ RUN pip install uv
 # 复制依赖文件
 COPY pyproject.toml uv.lock* ./
 
-# 安装 Python 依赖
-RUN uv pip install --system -r pyproject.toml
+# 安装 Python 依赖（使用国内镜像源）
+RUN uv pip install --system -r pyproject.toml \
+    --index-url https://pypi.tuna.tsinghua.edu.cn/simple
 
 # 复制应用代码
 COPY . .
