@@ -7,6 +7,7 @@ from exception import (
     AgentMissingParamsException,
     AgentInvalidParamsException,
 )
+import chromadb
 from langchain_chroma import Chroma
 from prompts import QA_GENERATION_PROMPT
 from langgraph.graph import START, StateGraph
@@ -33,12 +34,36 @@ class QAAgent:
             provider=system_config.model_config.embeddings.provider,
             huggingfacehub_api_token=system_config.secret_config.huggingfacehub_api_token,
         )
+        # 使用 ChromaDB 服务器模式（HttpClient）
+        self.chroma_client = chromadb.HttpClient(
+            host=system_config.vdb_config.chroma_host,
+            port=system_config.vdb_config.chroma_port,
+        )
         self.vector_store = Chroma(
             collection_name=system_config.vdb_config.collection_name,
             embedding_function=self.embeddings,
-            persist_directory=self.system_config.vdb_config.persist_directory,
+            client=self.chroma_client,
         )
         self._init_graph()
+    
+    def _recreate_vector_store(self):
+        """重新创建vector_store实例，用于处理连接错误"""
+        print("[Agent] 重新创建vector_store实例...")
+        self.embeddings = HuggingFaceEndpointEmbeddings(
+            model=self.system_config.model_config.embeddings.model,
+            provider=self.system_config.model_config.embeddings.provider,
+            huggingfacehub_api_token=self.system_config.secret_config.huggingfacehub_api_token,
+        )
+        # 重新创建 HttpClient 连接
+        self.chroma_client = chromadb.HttpClient(
+            host=self.system_config.vdb_config.chroma_host,
+            port=self.system_config.vdb_config.chroma_port,
+        )
+        self.vector_store = Chroma(
+            collection_name=self.system_config.vdb_config.collection_name,
+            embedding_function=self.embeddings,
+            client=self.chroma_client,
+        )
 
     def _init_graph(self):
         graph_builder = StateGraph(self.State).add_sequence(
@@ -48,12 +73,34 @@ class QAAgent:
         self.graph = graph_builder.compile()
 
     async def retrieve(self, state: State) -> State:
-        # 查询问题
-        retrieved_docs = self.vector_store.similarity_search(
-            query=state["question"],
-            filter={"content_hash": state["content_hash"]},
-        )
-        return {"context": retrieved_docs}
+        # 查询问题 - 如果遇到连接错误则重试
+        print(f"[Agent] 开始检索 - 问题: {state['question']}, content_hash: {state['content_hash']}")
+        max_retries = 2
+        last_error = None
+        
+        for attempt in range(max_retries):
+            try:
+                retrieved_docs = self.vector_store.similarity_search(
+                    query=state["question"],
+                    filter={"content_hash": state["content_hash"]},
+                )
+                print(f"[Agent] 检索成功 - 找到 {len(retrieved_docs)} 个文档")
+                return {"context": retrieved_docs}
+            except Exception as e:
+                last_error = e
+                error_str = str(e)
+                # 检查是否是SSL/连接错误
+                if "SSL" in error_str or "EOF" in error_str or "Connection" in error_str:
+                    print(f"[Agent] 检测到连接错误 (尝试 {attempt + 1}/{max_retries}): {error_str}")
+                    if attempt < max_retries - 1:
+                        # 重新创建vector_store实例
+                        self._recreate_vector_store()
+                        continue
+                # 其他错误直接抛出
+                raise
+        
+        # 所有重试都失败
+        raise last_error
 
     async def generate(self, state: State) -> State:
         """使用 LLM 生成答案"""
